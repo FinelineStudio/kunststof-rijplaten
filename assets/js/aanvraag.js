@@ -62,14 +62,26 @@
     }
 
     // Periode: ingangsdatum vanaf vandaag, einddatum (optioneel) minimaal vijf werkdagen.
+    // min en max alleen zetten als ze echt veranderen: Chrome bouwt een datumveld
+    // opnieuw op bij elke wijziging daarvan en wist dan half getypte onderdelen.
+    // De max houdt het jaar op vier cijfers.
     var van = form.querySelector('input[name="ingangsdatum"]');
     var tot = form.querySelector('input[name="verwachte_einddatum"]');
+    var vandaag = datumTekst(new Date());
+    var uiterst = datumTekst(dagenVanaf(730));
+    van.min = vandaag;
+    van.max = uiterst;
+    tot.max = uiterst;
+    function bijwerkenMinimum() {
+      var nieuw = van.value || vandaag;
+      if (tot.min !== nieuw) tot.min = nieuw;
+    }
+    bijwerkenMinimum();
+    van.addEventListener('change', bijwerkenMinimum);
     function controleerPeriode() {
-      tot.min = van.value || datumTekst(new Date());
       var teKort = van.value && tot.value && werkdagen(van.value, tot.value) < 5;
       tot.setCustomValidity(teKort ? 'U huurt minimaal vijf werkdagen.' : '');
     }
-    van.min = datumTekst(new Date());
 
     // Herroepingsrecht (alleen particulier): begint de huur binnen 14 dagen,
     // dan moet de huurder daar uitdrukkelijk om vragen.
@@ -109,8 +121,13 @@
     form.addEventListener('invalid', function (e) { markeer(e.target, true); }, true);
     form.addEventListener('change', function (e) {
       alles();
-      if (e.target.willValidate) markeer(e.target, !e.target.checkValidity());
+      // Chrome meldt bij datumvelden al een wijziging na elk onderdeel; de
+      // foutmelding daarvan pas tonen als het veld wordt verlaten.
+      if (e.target.willValidate && e.target.type !== 'date') markeer(e.target, !e.target.checkValidity());
       bijwerkenBlokken();
+    });
+    form.addEventListener('focusout', function (e) {
+      if (e.target.type === 'date' && e.target.willValidate) markeer(e.target, !e.target.checkValidity());
     });
     form.addEventListener('input', function (e) {
       alles();

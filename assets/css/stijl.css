@@ -806,6 +806,9 @@ input:user-invalid ~ .fout::before,
   color: var(--kr-wit);
   font-size: 0.8125rem;
 }
+/* Datumvelden: geen foutmelding tijdens het typen, pas na het verlaten van het veld of bij verzenden. */
+input[type="date"]:focus:not([aria-invalid="true"]) { border-width: 2px; }
+input[type="date"]:focus:not([aria-invalid="true"]) ~ .fout { display: none; }
 
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
